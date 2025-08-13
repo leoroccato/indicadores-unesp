@@ -1,0 +1,139 @@
+0,1,2,3,4,5,6,7,8
+,,,MATRÍCULAS,,,MATRICULADOS,,
+CURSO,VAGAS,CHAMADA,,,SEXO,,,
+,,,,RELAÇÃO,,,,
+,,,,,,,TOTAL,
+,,,,ADIC.,,,,
+,,Conv.,L.E.,,Masc.,Fem.,,
+Ciências Biológicas - Bacharelado - Vespertino/Noturno e Licenciatura - noturno - Ilha Solteira,50,7,0,5,0,12,12,
+Ciências Biológicas - Bacharelado e Licenciatura - integral - Assis,40,5,0,2,3,4,7,
+Ciências Biológicas - Bacharelado e Licenciatura - integral - Bauru,40,5,0,2,1,6,7,
+Ciências Biológicas - Bacharelado e Licenciatura - integral - Botucatu,40,0,1,2,0,3,3,
+Ciências Biológicas - Bacharelado e Licenciatura - integral - Rio Claro,40,2,0,1,1,2,3,
+Ciências Biológicas - Bacharelado e Licenciatura - integral - São José do Rio Preto,50,10,1,2,4,9,13,
+Ciências Biológicas - Bacharelado e Licenciatura - noturno - Jaboticabal,40,3,0,1,2,2,4,
+Ciências Biológicas - Bacharelado e Licenciatura - noturno - Rio Claro,25,2,1,0,1,2,3,
+Ciências Biológicas - Bacharelado em Biologia Marinha ou Gerenciamento Costeiro - integral,,,,,,,,
+,40,1,1,2,2,2,4,
+- São Vicente,,,,,,,,
+Ciências Biológicas - Licenciatura - noturno - Bauru,40,5,2,1,1,7,8,
+Ciências Biológicas - Licenciatura - noturno - Botucatu,40,6,0,4,3,7,10,
+Ciências Biológicas - Licenciatura - noturno - São Vicente,40,2,0,4,2,4,6,
+Ciências Biomédicas - integral - Botucatu,40,1,0,1,0,2,2,
+Ecologia - integral - Rio Claro,30,3,0,3,0,6,6,
+Educação Física - Bacharelado - integral - Bauru,20,2,1,1,2,2,4,
+Educação Física - Bacharelado - noturno - Bauru,20,3,0,2,3,2,5,
+Educação Física - Bacharelado e Licenciatura - integral - Presidente Prudente,45,4,0,0,1,3,4,
+Educação Física - Bacharelado e Licenciatura - integral - Rio Claro,60,2,2,1,3,2,5,
+Educação Física - Bacharelado e Licenciatura - vespertino/noturno - Presidente Prudente,45,2,1,1,2,2,4,
+Educação Física - Licenciatura - integral - Bauru,20,3,0,0,1,2,3,
+Educação Física - Licenciatura - noturno - Bauru,20,2,1,1,1,3,4,
+Enfermagem - integral - Botucatu,30,1,0,4,0,5,5,
+Engenharia Agronômica - integral - Botucatu,80,5,4,2,4,7,11,
+Engenharia Agronômica - integral - Dracena,40,4,1,2,1,6,7,
+Engenharia Agronômica - integral - Ilha Solteira,40,5,0,0,1,4,5,
+Engenharia Agronômica - integral - Jaboticabal,100,4,1,0,2,3,5,
+Engenharia Agronômica - integral - Registro,40,2,1,1,3,1,4,
+Engenharia Agronômica - integral (com ingresso no meio do ano) - Ilha Solteira,40,4,0,0,2,2,4,
+Engenharia de Pesca - integral - Registro,40,1,0,0,1,0,1,
+Engenharia Florestal - integral - Botucatu,40,3,0,0,0,3,3,
+Farmácia - integral - Araraquara,70,4,0,1,1,4,5,
+Farmácia - noturno - Araraquara,30,1,2,2,1,4,5,
+Fisioterapia - integral - Marília,40,3,1,1,0,5,5,
+Fisioterapia - integral - Presidente Prudente,45,5,1,0,3,3,6,
+Fonoaudiologia - integral - Marília,35,1,3,2,0,6,6,
+Medicina - integral - Botucatu,90,2,1,3,2,4,6,
+Medicina Veterinária - integral - Araçatuba,60,7,0,0,0,7,7,
+Medicina Veterinária - integral - Botucatu,60,2,2,1,0,5,5,
+Medicina Veterinária - integral - Jaboticabal,50,2,1,0,0,3,3,
+Nutrição - vespertino/noturno - Botucatu,30,1,1,0,2,0,2,
+Odontologia - integral - Araçatuba,40,2,0,3,3,2,5,
+Odontologia - integral - Araraquara,75,1,4,3,2,6,8,
+Odontologia - integral - São José dos Campos,40,3,2,0,1,4,5,
+Odontologia - vespertino/noturno - Araçatuba,40,4,2,3,3,6,9,
+Odontologia - vespertino/noturno - São José dos Campos,40,2,1,2,0,5,5,
+Terapia Ocupacional - integral - Marília,40,5,0,0,0,5,5,
+Zootecnia - integral - Botucatu,60,4,0,1,2,3,5,
+Zootecnia - integral - Dracena,40,2,0,4,0,6,6,
+Zootecnia - integral - Ilha Solteira,40,2,1,1,0,4,4,
+Zootecnia - integral - Jaboticabal,50,1,0,2,0,3,3,
+TOTAL,2210,153,40,74,67,200,267,
+* Incluídos os cursinhos comunitários apoiados pela Unesp.,,,,,,,,
+| 50 |,,,,,,,,
+,,,,,VAGAS,,,
+CURSO,VAGAS,CHAMADA,,,,SEXO,,
+,,,,RELAÇÃO,REM.,,,
+,,,,,,,,TOTAL
+,,,,ADIC.,,,,
+,,Conv.,L.E.,,,Masc.,Fem.,
+Ciência da Computação - Bacharelado - integral - Bauru,30,7,2,20,1,27,2,29
+Ciência da Computação - Bacharelado - integral - São José do Rio Preto,35,12,8,13,2,27,6,33
+Ciência da Computação - Bacharelado - vespertino/noturno - Presidente Prudente,35,16,8,11,0,28,7,35
+Ciências da Computação - Bacharelado - integral - Rio Claro,30,8,5,13,4,16,10,26
+Ciências da Computação - Bacharelado - noturno - Rio Claro,30,17,4,9,0,23,7,30
+Engenharia Aeronáutica - integral - São João da Boa Vista,40,16,6,17,1,25,14,39
+Engenharia Ambiental - integral - Presidente Prudente,35,11,0,10,14,11,10,21
+Engenharia Ambiental - integral - Rio Claro,30,13,10,4,3,12,15,27
+Engenharia Ambiental - integral - São José dos Campos,40,16,5,15,4,15,21,36
+Engenharia Ambiental - integral - Sorocaba,40,17,10,8,5,17,18,35
+Engenharia Biotecnológica - integral - Assis,45,22,3,16,4,24,17,41
+Engenharia Cartográﬁ ca e de Agrimensura - integral - Presidente Prudente,40,14,0,4,22,13,5,18
+Engenharia Civil - integral - Bauru,60,13,20,27,0,39,21,60
+Engenharia Civil - integral - Guaratinguetá,40,19,12,9,0,22,18,40
+Engenharia Civil - integral - Ilha Solteira,40,20,6,12,2,22,16,38
+Engenharia Civil - integral (com ingresso no meio do ano) - Ilha Solteira,40,31,4,2,3,28,9,37
+Engenharia de Alimentos - integral - São José do Rio Preto,30,3,8,9,10,6,14,20
+Engenharia de Bioprocessos e Biotecnologia - integral - Araraquara,40,21,11,8,0,14,26,40
+Engenharia de Bioprocessos e Biotecnologia - integral - Botucatu,50,21,13,15,1,23,26,49
+Engenharia de Biossistemas - integral - Tupã,40,22,5,6,7,15,18,33
+Engenharia de Controle e Automação - integral - Sorocaba,40,9,5,24,2,30,8,38
+Engenharia de Energia - integral - Rosana,40,11,0,2,27,12,1,13
+Engenharia de Materiais - integral - Guaratinguetá,40,16,7,9,8,13,19,32
+Engenharia de Produção - integral - Guaratinguetá,30,8,6,20,-4,20,14,34
+Engenharia de Produção - vespertino/noturno - Bauru,40,8,10,22,0,25,15,40
+Engenharia de Produção - vespertino/noturno - Itapeva,40,24,6,7,3,22,15,37
+Engenharia Elétrica - integral - Bauru,60,19,12,29,0,55,5,60
+Engenharia Elétrica - integral - Guaratinguetá,40,16,7,19,-2,32,10,42
+Engenharia Elétrica - integral - Ilha Solteira,40,22,7,5,6,30,4,34
+Engenharia Elétrica - integral (com ingresso no meio do ano) - Ilha Solteira,40,29,0,8,3,35,2,37
+Engenharia Eletrônica e de Telecomunicações - integral - São João da Boa Vista,40,17,6,10,7,22,11,33
+Engenharia Industrial-Madeira - integral - Itapeva,40,10,0,4,26,10,4,14
+Engenharia Mecânica - integral - Bauru,60,11,9,40,0,51,9,60
+Engenharia Mecânica - integral - Guaratinguetá,60,33,9,17,1,49,10,59
+Engenharia Mecânica - integral - Ilha Solteira,40,26,7,7,0,33,7,40
+Engenharia Mecânica - integral (com ingresso no meio do ano) - Ilha Solteira,40,32,5,3,0,32,8,40
+Engenharia Mecânica - noturno - Guaratinguetá,30,21,4,9,-4,23,11,34
+Engenharia Química - integral - Araraquara,40,7,8,21,4,24,12,36
+Estatística - integral - Presidente Prudente,30,14,5,4,7,16,7,23
+Física - Bacharelado e Licenciatura - integral - Rio Claro,40,11,13,11,5,27,8,35
+Física - Bacharelado e Licenciatura - noturno - Guaratinguetá,40,25,9,8,-2,32,10,42
+Física - Bacharelado em Física Biológica e Licenciatura em Física - integral - São,,,,,,,,
+,50,19,0,2,29,15,6,21
+José do Rio Preto,,,,,,,,
+Física - Bacharelado em Física de Materiais - vespertino/noturno e Licenciatura em,,,,,,,,
+,60,40,0,14,6,38,16,54
+Física - noturno - Bauru,,,,,,,,
+Física - Licenciatura - noturno - Ilha Solteira,30,11,0,1,18,8,4,12
+Física - Licenciatura - noturno - Presidente Prudente,30,16,0,1,13,14,3,17
+Física Médica - integral - Botucatu,40,12,10,13,5,16,19,35
+Geologia - integral - Rio Claro,35,20,6,8,1,22,12,34
+Matemática - Bacharelado e Licenciatura - integral - Rio Claro,40,16,9,8,7,22,11,33
+Matemática - Bacharelado e Licenciatura - integral - São José do Rio Preto,55,25,4,5,21,19,15,34
+Matemática - Licenciatura - matutino - Presidente Prudente,40,7,0,0,33,5,2,7
+Matemática - Licenciatura - noturno - Bauru,40,24,7,7,2,20,18,38
+Matemática - Licenciatura - noturno - Guaratinguetá,30,16,2,4,8,9,13,22
+Matemática - Licenciatura - noturno - Ilha Solteira,30,8,0,1,21,6,3,9
+Matemática - Licenciatura - noturno - Presidente Prudente,50,24,0,0,26,16,8,24
+Matemática - Licenciatura - noturno - São José do Rio Preto,45,29,5,3,8,17,20,37
+Meteorologia - Bacharelado - integral - Bauru,40,7,0,3,30,6,4,10
+Química - Bacharelado em Química Ambiental e Licenciatura em Química - integral,,,,,,,,
+,50,30,10,5,5,18,27,45
+- São José do Rio Preto,,,,,,,,
+Química - Bacharelado em Química e em Química Tecnológica - integral - Araraquara,50,11,12,27,0,19,31,50
+Química - Bacharelado em Química Tecnológica - vespertino-noturno - Bauru,20,9,6,5,0,9,11,20
+Química - Licenciatura - noturno - Araraquara,30,16,4,10,0,13,17,30
+Química - Licenciatura - noturno - Bauru,20,9,5,5,1,9,10,19
+Química - Licenciatura - noturno - Presidente Prudente,40,33,1,0,6,21,13,34
+Sistemas de Informação - Bacharelado - noturno - Bauru,40,24,5,10,1,30,9,39
+TOTAL,2505,1094,361,639,411,1352,742,2094
+,,,,,,,,| 51 |
