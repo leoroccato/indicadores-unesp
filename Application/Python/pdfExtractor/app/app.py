@@ -10,7 +10,7 @@ import altair as alt
 st.set_page_config(page_title="TCC UNESP Bauru", layout="wide")
 alt.data_transformers.disable_max_rows()
 
-ARQUIVO = "../saida/bauru_ampla.csv"  # <- ajuste aqui
+ARQUIVO = "/saida/bauru_ampla.csv"  # <- ajuste aqui
 ENCODING = "latin1"
 SEP = ";"  # ajuste se precisar
 
