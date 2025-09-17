@@ -60,9 +60,8 @@ def safe_number(x):
 
 # ========= Data Load =========
 
-DATA_DIR = Path("Application/Python/pdfExtractor/saida")  # ajusta se necessário
-BASE_XLSX = DATA_DIR / "base.xlsx"
-FORM_XLSX = DATA_DIR / "formandos.xlsx"
+BASE_XLSX = Path("Application/Python/pdfExtractor/saida/base.xlsx")
+FORM_XLSX = Path("Application/Python/pdfExtractor/saida/formandos.xlsx")
 
 @st.cache_data(show_spinner=True)
 def load_ingresso() -> pd.DataFrame | None:
