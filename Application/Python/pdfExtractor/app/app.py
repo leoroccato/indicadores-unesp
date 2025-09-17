@@ -1,278 +1,332 @@
 # app.py
-# Dashboard UNESP – Ingressantes & Formandos
-# Foco: simplicidade, baixo acoplamento e tolerância a variações de dados
-# Requisitos: streamlit, pandas, altair
+# Streamlit Dashboard – UNESP (Ingresso & Formandos)
+# Foco em robustez: leitura flexível de XLSX, mapeamento automático de colunas,
+# e interface simples para decisões rápidas. Autor: você ;)
 
-import streamlit as st
+import unicodedata
 import pandas as pd
+import numpy as np
 import altair as alt
+import streamlit as st
+from functools import lru_cache
 from pathlib import Path
 
 st.set_page_config(page_title="UNESP – Ingressantes & Formandos", layout="wide")
 
-# ========== Config ==========
-DATA_DIR = Path(".")
-# Alvos padrão (tente primeiro)
-INGRESSANTES_CSV = DATA_DIR / "base.csv"
-PLANILHA_XLSX     = DATA_DIR / "base.xlsx"     # caso tenha virado Excel com múltiplas abas
-FORMANDOS_CSV     = DATA_DIR / "formandos.csv" # fallback se enviarem formandos num CSV separado
-FORMANDOS_SHEET   = "Formandos"                # nome esperado da segunda aba
+# ========= Utils =========
 
-# ========== Util: normalização de colunas ==========
-def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    # mapa flexível de nomes -> canônicos
-    mapping_candidates = {
-        "ano":        ["ano", "year", "período", "periodo"],
-        "curso":      ["curso", "course", "graduação", "graduacao", "programa"],
-        "sexo":       ["sexo", "gender", "gênero", "genero"],
-        "quantidade": ["quantidade", "qtd", "qtde", "count", "alunos", "numero", "n", "qte"]
-    }
+def _strip_accents(text: str) -> str:
+    if not isinstance(text, str):
+        return text
+    return "".join(
+        c for c in unicodedata.normalize("NFD", text)
+        if unicodedata.category(c) != "Mn"
+    )
 
-    cols = {c.lower().strip(): c for c in df.columns}
-    canon = {}
-    for target, candidates in mapping_candidates.items():
-        for c in candidates:
-            if c in cols:
-                canon[target] = cols[c]
-                break
-
-    # aplica renome se existir
-    rename_map = {}
-    for target, found in canon.items():
-        rename_map[found] = target
-    if rename_map:
-        df = df.rename(columns=rename_map)
-
-    # garante existência das canônicas se possível inferir
-    # (não cria dados; apenas mantém o que foi mapeado)
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df.columns = [
+        _strip_accents(c).strip().lower().replace("\n", " ").replace("\r", " ")
+        for c in df.columns
+    ]
     return df
 
-# ========== Carregamento robusto ==========
+def find_first_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
+    cols = list(df.columns)
+    for cand in candidates:
+        # busca exata
+        if cand in df.columns:
+            return cand
+    # busca por "contém"
+    for cand in candidates:
+        for c in cols:
+            if cand in c:
+                return c
+    return None
+
+def friendly_missing(*cols):
+    return " | ".join(cols)
+
+@lru_cache
+def load_excel(path: str | Path, sheet: str | int | None = None) -> pd.DataFrame:
+    df = pd.read_excel(path, sheet_name=sheet)
+    return df
+
+def safe_number(x):
+    try:
+        return pd.to_numeric(x)
+    except Exception:
+        return pd.NA
+
+# ========= Data Load =========
+
+DATA_DIR = Path(".")  # ajusta se necessário
+BASE_XLSX = DATA_DIR / "base.xlsx"
+FORM_XLSX = DATA_DIR / "formandos.xlsx"
+
 @st.cache_data(show_spinner=True)
-def load_data():
-    ingressantes = None
-    formandos = None
-    messages = []
+def load_ingresso() -> pd.DataFrame | None:
+    if not BASE_XLSX.exists():
+        st.warning(f"Arquivo não encontrado: {BASE_XLSX.resolve()}")
+        return None
+    df = load_excel(str(BASE_XLSX))
+    return normalize_columns(df)
 
-    # 1) Tenta Excel com abas
-    if PLANILHA_XLSX.exists():
-        try:
-            xls = pd.ExcelFile(PLANILHA_XLSX)
-            # Heurística: primeira aba = ingressantes; segunda = formandos (ou busca por nome)
-            sheet_names = [s.lower() for s in xls.sheet_names]
-            # tenta achar por nome
-            ing_sheet = next((s for s in xls.sheet_names if "ingress" in s.lower()), xls.sheet_names[0])
-            frm_sheet = next((s for s in xls.sheet_names if "formand" in s.lower() or s.lower()==FORMANDOS_SHEET.lower()),
-                             (xls.sheet_names[1] if len(xls.sheet_names) > 1 else None))
+@st.cache_data(show_spinner=True)
+def load_formandos() -> pd.DataFrame | None:
+    if not FORM_XLSX.exists():
+        st.warning(f"Arquivo não encontrado: {FORM_XLSX.resolve()}")
+        return None
+    df = load_excel(str(FORM_XLSX))
+    return normalize_columns(df)
 
-            ingressantes = pd.read_excel(PLANILHA_XLSX, sheet_name=ing_sheet)
-            messages.append(f"Carregado de {PLANILHA_XLSX.name} (aba '{ing_sheet}').")
+df_ing = load_ingresso()
+df_for = load_formandos()
 
-            if frm_sheet is not None:
-                formandos = pd.read_excel(PLANILHA_XLSX, sheet_name=frm_sheet)
-                messages.append(f"Formandos carregado de {PLANILHA_XLSX.name} (aba '{frm_sheet}').")
-        except Exception as e:
-            messages.append(f"Falha ao ler {PLANILHA_XLSX.name}: {e}")
+st.title("📊 UNESP – Ingressantes & Formandos")
+st.caption("Dashboard do TCC – indicadores de ingresso (vestibular) e formandos por curso/ano.")
 
-    # 2) Fallback CSV para ingressantes
-    if ingressantes is None and INGRESSANTES_CSV.exists():
-        try:
-            ingressantes = pd.read_csv(INGRESSANTES_CSV)
-            messages.append(f"Carregado de {INGRESSANTES_CSV.name}.")
-        except Exception as e:
-            messages.append(f"Falha ao ler {INGRESSANTES_CSV.name}: {e}")
+# ========= Column Mapping Heuristics =========
 
-    # 3) Fallback CSV separado para formandos
-    if formandos is None and FORMANDOS_CSV.exists():
-        try:
-            formandos = pd.read_csv(FORMANDOS_CSV)
-            messages.append(f"Formandos carregado de {FORMANDOS_CSV.name}.")
-        except Exception as e:
-            messages.append(f"Falha ao ler {FORMANDOS_CSV.name}: {e}")
-
-    # Normaliza nomes de colunas se carregou algo
-    if ingressantes is not None:
-        ingressantes = _normalize_columns(ingressantes)
-    if formandos is not None:
-        formandos = _normalize_columns(formandos)
-
-    return ingressantes, formandos, messages
-
-ingressantes, formandos, load_msgs = load_data()
-
-with st.expander("🧾 Log de carregamento", expanded=False):
-    if not load_msgs:
-        st.write("Nenhuma mensagem de carregamento.")
-    else:
-        for m in load_msgs:
-            st.write("•", m)
-
-if ingressantes is None and formandos is None:
-    st.warning("Não encontrei dados. Certifique-se de que 'base.xlsx' (com abas) ou 'base.csv' e/ou 'formandos.csv' estão na pasta.")
-    st.stop()
-
-# ========== Barra lateral (filtros compartilhados) ==========
-st.sidebar.header("Filtros")
-# Detecta listas a partir de ambos os datasets
-def collect_unique(df, col):
-    return sorted(df[col].dropna().unique().tolist()) if df is not None and col in df.columns else []
-
-anos = sorted(set(collect_unique(ingressantes, "ano")) | set(collect_unique(formandos, "ano")))
-cursos = sorted(set(collect_unique(ingressantes, "curso")) | set(collect_unique(formandos, "curso")))
-sexos = sorted(set(collect_unique(ingressantes, "sexo")) | set(collect_unique(formandos, "sexo")))
-
-sel_anos  = st.sidebar.multiselect("Ano", anos, default=anos or None)
-sel_curso = st.sidebar.multiselect("Curso", cursos, default=None)
-sel_sexo  = st.sidebar.multiselect("Sexo", sexos, default=None)
-
-def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
+def map_ingresso_columns(df: pd.DataFrame):
     if df is None:
-        return df
-    f = df.copy()
-    if "ano" in f.columns and sel_anos:
-        f = f[f["ano"].isin(sel_anos)]
-    if "curso" in f.columns and sel_curso:
-        f = f[f["curso"].isin(sel_curso)]
-    if "sexo" in f.columns and sel_sexo:
-        f = f[f["sexo"].isin(sel_sexo)]
-    return f
+        return None
+    curso_col = find_first_col(df, ["curso", "nome do curso", "curso_nome"])
+    ano_col   = find_first_col(df, ["ano", "ano_ingresso", "ano_letivo", "periodo"])
+    sexo_col  = find_first_col(df, ["sexo", "genero"])
+    count_col = find_first_col(df, ["quantidade", "qtd", "ingressantes", "matriculas", "matriculados"])
 
-# ========== Abas ==========
-aba_ing, aba_frm = st.tabs(["📈 Ingressantes", "🎓 Formandos"])
+    return {
+        "curso": curso_col,
+        "ano": ano_col,
+        "sexo": sexo_col,
+        "valor": count_col
+    }
 
-# --------- Ingressantes ---------
-with aba_ing:
-    st.subheader("Ingressantes")
-    if ingressantes is None:
-        st.info("Sem dados de ingressantes.")
-    else:
-        df = apply_filters(ingressantes)
-        # tenta achar coluna de medida
-        medida_col = "quantidade" if "quantidade" in df.columns else None
-        if medida_col is None:
-            # se não houver quantidade, assume 1 por linha
-            df["_count"] = 1
-            medida_col = "_count"
+def map_formandos_columns(df: pd.DataFrame):
+    if df is None:
+        return None
+    curso_col = find_first_col(df, ["curso", "nome do curso", "curso_nome"])
+    ano_col   = find_first_col(df, ["ano", "ano_formatura", "ano_conclusao"])
+    valor_col = find_first_col(df, ["formandos", "concluintes", "quantidade", "qtd"])
 
-        # KPIs
-        total = int(df[medida_col].sum())
-        n_cursos = df["curso"].nunique() if "curso" in df.columns else 0
-        n_anos = df["ano"].nunique() if "ano" in df.columns else 0
+    return {
+        "curso": curso_col,
+        "ano": ano_col,
+        "valor": valor_col
+    }
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total de ingressantes", f"{total:,}".replace(",", "."))
-        c2.metric("Cursos", n_cursos)
-        c3.metric("Anos", n_anos)
+map_ing = map_ingresso_columns(df_ing)
+map_for = map_formandos_columns(df_for)
 
-        # Gráficos padrão
-        if "ano" in df.columns:
-            by_year = df.groupby("ano", as_index=False)[medida_col].sum()
-            chart = alt.Chart(by_year).mark_bar().encode(
-                x=alt.X("ano:O", title="Ano", sort="ascending"),
-                y=alt.Y(f"{medida_col}:Q", title="Ingressantes"),
-                tooltip=["ano", alt.Tooltip(medida_col, title="Ingressantes")]
-            ).properties(height=300)
-            st.altair_chart(chart, use_container_width=True)
+with st.expander("🔎 Ver mapeamento automático de colunas"):
+    st.write("Ingresso:", map_ing)
+    st.write("Formandos:", map_for)
+    st.info("Se algum campo estiver **None**, confira os nomes das colunas na planilha.")
 
-        if "curso" in df.columns:
-            topn = df.groupby("curso", as_index=False)[medida_col].sum().sort_values(medida_col, ascending=False).head(20)
-            chart = alt.Chart(topn).mark_bar().encode(
-                x=alt.X(f"{medida_col}:Q", title="Ingressantes"),
-                y=alt.Y("curso:N", sort="-x", title="Curso"),
-                tooltip=["curso", alt.Tooltip(medida_col, title="Ingressantes")]
-            ).properties(height=500)
-            st.altair_chart(chart, use_container_width=True)
+# ========= Sidebar Filters =========
 
-        if "sexo" in df.columns:
-            by_sex = df.groupby("sexo", as_index=False)[medida_col].sum()
-            chart = alt.Chart(by_sex).mark_arc(innerRadius=40).encode(
-                theta=alt.Theta(f"{medida_col}:Q"),
-                color=alt.Color("sexo:N", legend=alt.Legend(title="Sexo")),
-                tooltip=["sexo", alt.Tooltip(medida_col, title="Ingressantes")]
-            ).properties(height=300)
-            st.altair_chart(chart, use_container_width=True)
-
-        st.dataframe(df, use_container_width=True)
-
-# --------- Formandos ---------
-with aba_frm:
-    st.subheader("Formandos")
-    if formandos is None:
-        st.info("Sem dados de formandos. Certifique-se de ter a aba/arquivo com estes dados (ex.: 'Formandos' em base.xlsx ou formandos.csv).")
-    else:
-        df = apply_filters(formandos)
-        medida_col = "quantidade" if "quantidade" in df.columns else None
-        if medida_col is None:
-            df["_count"] = 1
-            medida_col = "_count"
-
-        total = int(df[medida_col].sum())
-        n_cursos = df["curso"].nunique() if "curso" in df.columns else 0
-        n_anos = df["ano"].nunique() if "ano" in df.columns else 0
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total de formandos", f"{total:,}".replace(",", "."))
-        c2.metric("Cursos", n_cursos)
-        c3.metric("Anos", n_anos)
-
-        if "ano" in df.columns:
-            by_year = df.groupby("ano", as_index=False)[medida_col].sum()
-            chart = alt.Chart(by_year).mark_bar().encode(
-                x=alt.X("ano:O", title="Ano", sort="ascending"),
-                y=alt.Y(f"{medida_col}:Q", title="Formandos"),
-                tooltip=["ano", alt.Tooltip(medida_col, title="Formandos")]
-            ).properties(height=300)
-            st.altair_chart(chart, use_container_width=True)
-
-        if "curso" in df.columns:
-            topn = df.groupby("curso", as_index=False)[medida_col].sum().sort_values(medida_col, ascending=False).head(20)
-            chart = alt.Chart(topn).mark_bar().encode(
-                x=alt.X(f"{medida_col}:Q", title="Formandos"),
-                y=alt.Y("curso:N", sort="-x", title="Curso"),
-                tooltip=["curso", alt.Tooltip(medida_col, title="Formandos")]
-            ).properties(height=500)
-            st.altair_chart(chart, use_container_width=True)
-
-        if "sexo" in df.columns:
-            by_sex = df.groupby("sexo", as_index=False)[medida_col].sum()
-            chart = alt.Chart(by_sex).mark_arc(innerRadius=40).encode(
-                theta=alt.Theta(f"{medida_col}:Q"),
-                color=alt.Color("sexo:N", legend=alt.Legend(title="Sexo")),
-                tooltip=["sexo", alt.Tooltip(medida_col, title="Formandos")]
-            ).properties(height=300)
-            st.altair_chart(chart, use_container_width=True)
-
-        st.dataframe(df, use_container_width=True)
-
-# ========== Comparativo (opcional, leve) ==========
-st.markdown("---")
-st.subheader("📊 Comparativo rápido (Ingressantes vs Formandos por Ano)")
-if ingressantes is not None and formandos is not None and "ano" in ingressantes.columns and "ano" in formandos.columns:
-    mi = "quantidade" if "quantidade" in ingressantes.columns else None
-    mf = "quantidade" if "quantidade" in formandos.columns else None
-
-    gi = ingressantes.copy()
-    gf = formandos.copy()
-    if mi is None:
-        gi["_count"] = 1
-        mi = "_count"
-    if mf is None:
-        gf["_count"] = 1
-        mf = "_count"
-
-    gi = gi.groupby("ano", as_index=False)[mi].sum().rename(columns={mi: "Ingressantes"})
-    gf = gf.groupby("ano", as_index=False)[mf].sum().rename(columns={mf: "Formandos"})
-    comp = pd.merge(gi, gf, on="ano", how="outer").fillna(0)
-    st.dataframe(comp.sort_values("ano"), use_container_width=True)
-
-    # gráfico de linhas
-    comp_melt = comp.melt(id_vars="ano", var_name="Grupo", value_name="Quantidade")
-    line = alt.Chart(comp_melt).mark_line(point=True).encode(
-        x=alt.X("ano:O", title="Ano", sort="ascending"),
-        y=alt.Y("Quantidade:Q"),
-        color="Grupo:N",
-        tooltip=["ano", "Grupo", "Quantidade"]
-    ).properties(height=350)
-    st.altair_chart(line, use_container_width=True)
+st.sidebar.header("Filtros")
+if df_ing is not None and map_ing["ano"] is not None:
+    anos_ing = sorted([a for a in df_ing[map_ing["ano"]].dropna().unique()])
 else:
-    st.info("Para o comparativo, preciso de Ano em ambos os datasets.")
+    anos_ing = []
+
+if df_for is not None and map_for["ano"] is not None:
+    anos_for = sorted([a for a in df_for[map_for["ano"]].dropna().unique()])
+else:
+    anos_for = []
+
+anos_all = sorted(set(anos_ing) | set(anos_for))
+ano_sel = st.sidebar.multiselect("Ano", anos_all, default=anos_all)
+curso_sel = []
+
+# ========= Tabs =========
+
+tab1, tab2, tab3 = st.tabs(["📥 Ingresso (Vestibular)", "🎓 Formandos", "⚖️ Comparativo"])
+
+# ---------- TAB 1: Ingresso ----------
+with tab1:
+    st.subheader("Ingresso por Curso/Ano")
+    if df_ing is None:
+        st.warning("Dados de ingresso não carregados.")
+    else:
+        curso_col = map_ing["curso"]
+        ano_col   = map_ing["ano"]
+        sexo_col  = map_ing["sexo"]
+        val_col   = map_ing["valor"]
+
+        if curso_col is None or ano_col is None:
+            st.error(f"Colunas necessárias ausentes em ingresso: {friendly_missing('curso', 'ano')}")
+        else:
+            dfi = df_ing.copy()
+            # Filtros
+            if ano_sel:
+                dfi = dfi[dfi[ano_col].isin(ano_sel)]
+            if curso_col in dfi.columns:
+                cursos = sorted(dfi[curso_col].dropna().unique().tolist())
+                curso_sel_local = st.multiselect("Curso", cursos, default=cursos)
+                if curso_sel_local:
+                    dfi = dfi[dfi[curso_col].isin(curso_sel_local)]
+
+            # Agregação
+            if val_col is None:
+                dfi["_valor"] = 1
+            else:
+                dfi["_valor"] = pd.to_numeric(dfi[val_col], errors="coerce")
+                if dfi["_valor"].isna().all():
+                    dfi["_valor"] = 1
+
+            group_cols = [ano_col, curso_col]
+            if sexo_col is not None and sexo_col in dfi.columns:
+                add_sexo = st.checkbox("Detalhar por sexo", value=False)
+                if add_sexo:
+                    group_cols.append(sexo_col)
+
+            resumo = dfi.groupby(group_cols, dropna=False)["_valor"].sum().reset_index()
+            st.dataframe(resumo, use_container_width=True)
+
+            # Gráfico séries por ano
+            try:
+                chart = (
+                    alt.Chart(resumo)
+                    .mark_line(point=True)
+                    .encode(
+                        x=alt.X(f"{ano_col}:O", title="Ano"),
+                        y=alt.Y("_valor:Q", title="Ingresso"),
+                        color=alt.Color(f"{curso_col}:N", title="Curso"),
+                        tooltip=group_cols + ["_valor"]
+                    )
+                    .properties(height=360)
+                )
+                st.altair_chart(chart, use_container_width=True)
+            except Exception as e:
+                st.info(f"Gráfico não pôde ser renderizado: {e}")
+
+# ---------- TAB 2: Formandos ----------
+with tab2:
+    st.subheader("Formandos por Curso/Ano")
+    if df_for is None:
+        st.warning("Dados de formandos não carregados.")
+    else:
+        curso_col = map_for["curso"]
+        ano_col   = map_for["ano"]
+        val_col   = map_for["valor"]
+
+        if curso_col is None or ano_col is None:
+            st.error(f"Colunas necessárias ausentes em formandos: {friendly_missing('curso', 'ano')}")
+        else:
+            dff = df_for.copy()
+            # Filtros
+            if ano_sel:
+                dff = dff[dff[ano_col].isin(ano_sel)]
+            if curso_col in dff.columns:
+                cursos = sorted(dff[curso_col].dropna().unique().tolist())
+                curso_sel_local = st.multiselect("Curso", cursos, default=cursos, key="form_cursos")
+                if curso_sel_local:
+                    dff = dff[dff[curso_col].isin(curso_sel_local)]
+
+            # Agregação
+            if val_col is None:
+                dff["_valor"] = 1
+            else:
+                dff["_valor"] = pd.to_numeric(dff[val_col], errors="coerce")
+                if dff["_valor"].isna().all():
+                    dff["_valor"] = 1
+
+            resumo = dff.groupby([ano_col, curso_col], dropna=False)["_valor"].sum().reset_index()
+            st.dataframe(resumo, use_container_width=True)
+
+            # Gráfico
+            try:
+                chart = (
+                    alt.Chart(resumo)
+                    .mark_bar()
+                    .encode(
+                        x=alt.X(f"{ano_col}:O", title="Ano"),
+                        y=alt.Y("_valor:Q", title="Formandos"),
+                        color=alt.Color(f"{curso_col}:N", title="Curso"),
+                        tooltip=[ano_col, curso_col, "_valor"]
+                    )
+                    .properties(height=360)
+                )
+                st.altair_chart(chart, use_container_width=True)
+            except Exception as e:
+                st.info(f"Gráfico não pôde ser renderizado: {e}")
+
+# ---------- TAB 3: Comparativo ----------
+with tab3:
+    st.subheader("Ingresso vs. Formandos")
+    if df_ing is None or df_for is None:
+        st.warning("Para o comparativo, carregue ambos: base.xlsx e formandos.xlsx.")
+    else:
+        # Mapeamentos
+        ci, ai, vi = map_ing["curso"], map_ing["ano"], map_ing["valor"]
+        cf, af, vf = map_for["curso"], map_for["ano"], map_for["valor"]
+        if None in (ci, ai, cf, af):
+            st.error("Comparativo requer colunas de curso e ano em ambos os conjuntos.")
+        else:
+            a = df_ing.copy()
+            b = df_for.copy()
+
+            a["_valor_ing"] = pd.to_numeric(a[vi], errors="coerce") if vi else 1
+            if a["_valor_ing"].isna().all():
+                a["_valor_ing"] = 1
+            a = a.groupby([ai, ci], dropna=False)["_valor_ing"].sum().reset_index()
+
+            b["_valor_for"] = pd.to_numeric(b[vf], errors="coerce") if vf else 1
+            if b["_valor_for"].isna().all():
+                b["_valor_for"] = 1
+            b = b.groupby([af, cf], dropna=False)["_valor_for"].sum().reset_index()
+
+            # Harmonizar tipos (ano pode vir como string/int)
+            a[ai] = a[ai].astype(str)
+            b[af] = b[af].astype(str)
+
+            comp = a.merge(
+                b, left_on=[ai, ci], right_on=[af, cf], how="inner"
+            ).rename(columns={
+                ai: "ano",
+                ci: "curso"
+            })[["ano", "curso", "_valor_ing", "_valor_for"]]
+
+            if comp.empty:
+                st.info("Não há interseção (curso/ano) entre dados de ingresso e formandos.")
+            else:
+                comp["saldo (ing - form)"] = comp["_valor_ing"] - comp["_valor_for"]
+                st.dataframe(comp.sort_values(["ano", "curso"]), use_container_width=True)
+
+                # Série dupla por curso selecionado
+                cursos = sorted(comp["curso"].unique().tolist())
+                curso_pick = st.selectbox("Curso para série temporal", cursos)
+                comp_c = comp[comp["curso"] == curso_pick].copy()
+
+                try:
+                    comp_melt = comp_c.melt(id_vars=["ano", "curso"],
+                                            value_vars=["_valor_ing", "_valor_for"],
+                                            var_name="tipo", value_name="valor")
+                    comp_melt["tipo"] = comp_melt["tipo"].map({
+                        "_valor_ing": "Ingresso",
+                        "_valor_for": "Formandos"
+                    })
+
+                    chart = (
+                        alt.Chart(comp_melt)
+                        .mark_line(point=True)
+                        .encode(
+                            x=alt.X("ano:O", title="Ano"),
+                            y=alt.Y("valor:Q", title="Quantidade"),
+                            color=alt.Color("tipo:N", title="Série"),
+                            tooltip=["ano", "tipo", "valor"]
+                        )
+                        .properties(height=360)
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+                except Exception as e:
+                    st.info(f"Não foi possível renderizar a série: {e}")
+
+# ========= Rodapé =========
+st.caption(
+    "Dica: se algum gráfico não aparecer, verifique os nomes das colunas nas planilhas. "
+    "Este app tenta mapear automaticamente, mas headers muito diferentes podem exigir ajuste simples."
+)
