@@ -60,7 +60,7 @@ def safe_number(x):
 
 # ========= Data Load =========
 
-DATA_DIR = Path(".")  # ajusta se necessário
+DATA_DIR = Path("Application/Python/pdfExtractor/saida")  # ajusta se necessário
 BASE_XLSX = DATA_DIR / "base.xlsx"
 FORM_XLSX = DATA_DIR / "formandos.xlsx"
 
